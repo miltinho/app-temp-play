@@ -1,0 +1,45 @@
+name: Build Android App Bundle
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Gerar chave de assinatura
+        run: |
+          keytool -genkeypair -v -keystore release.jks -alias my-alias \
+          -keyalg RSA -keysize 2048 -validity 10000 \
+          -storepass senhatemporaria -keypass senhatemporaria \
+          -dname "CN=Temp, OU=Temp, O=Temp, L=Temp, S=Temp, C=BR"
+
+      - name: Instalar Gradle Wrapper
+        run: gradle wrapper --gradle-version 8.6
+
+      - name: Compilar App Bundle (AAB)
+        run: ./gradlew :app:bundleRelease
+
+      - name: Assinar o App Bundle
+        run: |
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+          -keystore release.jks -storepass senhatemporaria -keypass senhatemporaria \
+          app/build/outputs/bundle/release/app-release.aab my-alias
+
+      - name: Disponibilizar AAB para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-bundle
+          path: app/build/outputs/bundle/release/app-release.aab

@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.raminel.apputil'
+    namespace 'app.temp2'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.raminel.apputil"
+        applicationId "app.temp2"
         minSdk 24
         targetSdk 34
         versionCode 1
